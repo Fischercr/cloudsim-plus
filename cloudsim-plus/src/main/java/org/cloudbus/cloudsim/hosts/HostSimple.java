@@ -399,6 +399,7 @@ public class HostSimple implements Host {
         }
 
         if(!allocateResourcesForVm(vm, false)){
+            System.out.print("Not enough resources for VM.");
             return false;
         }
 

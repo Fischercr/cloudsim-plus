@@ -51,7 +51,7 @@ import static java.util.stream.Collectors.toSet;
  * @since CloudSim Toolkit 3.0
  */
 public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPolicyAbstract implements VmAllocationPolicyMigration {
-    public static final double DEF_UNDER_UTILIZATION_THRESHOLD = 0.35;
+    public static final double DEF_UNDER_UTILIZATION_THRESHOLD = 0.1;
     private static final Logger LOGGER = LoggerFactory.getLogger(VmAllocationPolicyMigrationAbstract.class.getSimpleName());
 
     /** @see #getUnderUtilizationThreshold() */
@@ -213,6 +213,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
      */
     protected double getPowerDifferenceAfterAllocation(final Host host, final Vm vm){
         final double powerAfterAllocation = getPowerAfterAllocation(host, vm);
+        System.out.println("powerAfterAllocation " + powerAfterAllocation);
         if (powerAfterAllocation > 0) {
             return powerAfterAllocation - host.getPowerModel().getPower();
         }
@@ -323,6 +324,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
      * @see #findHostForVmInternal(Vm, Stream)
      */
     private Optional<Host> findHostForVm(final Vm vm, final Set<? extends Host> excludedHosts, final Predicate<Host> predicate) {
+        System.out.println("findHostForVm in VmAllocationPolicyMigrationAbstract");
         final Stream<Host> stream = this.getHostList().stream()
             .filter(host -> !excludedHosts.contains(host))
             .filter(host -> host.isSuitableForVm(vm))
@@ -345,9 +347,10 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
      * @see #additionalHostFilters(Vm, Stream)
      */
     protected Optional<Host> findHostForVmInternal(final Vm vm, final Stream<Host> hostStream){
+        System.out.println("findHostForVmInternal in VmAllocationPolicyMigrationAbstract");
         final Comparator<Host> hostPowerConsumptionComparator =
             comparingDouble(host -> getPowerDifferenceAfterAllocation(host, vm));
-
+        System.out.println(hostPowerConsumptionComparator);
         return additionalHostFilters(vm, hostStream).min(hostPowerConsumptionComparator);
     }
 
@@ -640,6 +643,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
      * consumption could not be determined
      */
     protected double getPowerAfterAllocation(final Host host, final Vm vm) {
+        System.out.println("getPowerAfterAllocation");
         try {
             return host.getPowerModel().getPower(getMaxUtilizationAfterAllocation(host, vm));
         } catch (IllegalArgumentException e) {
@@ -662,6 +666,8 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
         final double requestedTotalMips = vm.getCurrentRequestedTotalMips();
         final double hostUtilizationMips = getUtilizationOfCpuMips(host);
         final double hostPotentialMipsUse = hostUtilizationMips + requestedTotalMips;
+        System.out.print("getMaxUtilizationAfterAllocation ");
+        System.out.println(hostPotentialMipsUse / host.getTotalMipsCapacity());
         return hostPotentialMipsUse / host.getTotalMipsCapacity();
     }
 
@@ -701,6 +707,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
 
     @Override
     public final void setVmSelectionPolicy(final VmSelectionPolicy vmSelectionPolicy) {
+        System.out.println(vmSelectionPolicy);
         this.vmSelectionPolicy = Objects.requireNonNull(vmSelectionPolicy);
     }
 

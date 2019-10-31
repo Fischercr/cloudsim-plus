@@ -8,6 +8,7 @@
         <copyrightfile>COPYRIGHT</copyrightfile>
         <!-- Version used by all submodules which is managed by the flatten-maven-plugin -->
         <global.version>5.1.1</global.version>
+        <maven.compiler.release>11</maven.compiler.release>
     </properties>
 
     <groupId>org.cloudsimplus</groupId>

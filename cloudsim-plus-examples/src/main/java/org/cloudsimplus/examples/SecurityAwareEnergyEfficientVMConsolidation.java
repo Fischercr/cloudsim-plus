@@ -1,27 +1,4 @@
-/*
- * CloudSim Plus: A modern, highly-extensible and easier-to-use Framework for
- * Modeling and Simulation of Cloud Computing Infrastructures and Services.
- * http://cloudsimplus.org
- *
- *     Copyright (C) 2015-2018 Universidade da Beira Interior (UBI, Portugal) and
- *     the Instituto Federal de Educação Ciência e Tecnologia do Tocantins (IFTO, Brazil).
- *
- *     This file is part of CloudSim Plus.
- *
- *     CloudSim Plus is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     CloudSim Plus is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
- *
- *     You should have received a copy of the GNU General Public License
- *     along with CloudSim Plus. If not, see <http://www.gnu.org/licenses/>.
- */
-package org.cloudsimplus.examples.traces;
+package org.cloudsimplus.examples;
 
 import org.cloudbus.cloudsim.allocationpolicies.VmAllocationPolicySimple;
 import org.cloudbus.cloudsim.allocationpolicies.migration.VmAllocationPolicyMigrationLocalRegression;
@@ -37,13 +14,12 @@ import org.cloudbus.cloudsim.hosts.Host;
 import org.cloudbus.cloudsim.hosts.HostSimple;
 import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.ResourceProvisionerSimple;
+import org.cloudbus.cloudsim.power.models.PowerModelSpecPowerHpProLiantMl110G4Xeon3040;
 import org.cloudbus.cloudsim.resources.Pe;
 import org.cloudbus.cloudsim.resources.PeSimple;
 import org.cloudbus.cloudsim.schedulers.cloudlet.CloudletSchedulerTimeShared;
 import org.cloudbus.cloudsim.schedulers.vm.VmSchedulerTimeShared;
 import org.cloudbus.cloudsim.selectionpolicies.VmSelectionPolicyMinimumMigrationTime;
-import org.cloudbus.cloudsim.selectionpolicies.VmSelectionPolicyMinimumUtilization;
-import org.cloudbus.cloudsim.util.TimeUtil;
 import org.cloudbus.cloudsim.utilizationmodels.UtilizationModel;
 import org.cloudbus.cloudsim.utilizationmodels.UtilizationModelDynamic;
 import org.cloudbus.cloudsim.utilizationmodels.UtilizationModelPlanetLab;
@@ -57,14 +33,12 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * An example showing how to use the {@link UtilizationModelPlanetLab} class
- * to define Cloudlets' CPU utilization based on <a href="https://www.planet-lab.org">PlanetLab's</a> trace files.
- * Check the {@link #createCloudlets()} method.
+ * An implementation of Ahamed, Shahrestani, and Javadi's Security Aware and
+ * Energy-Efficient Virtual Machine Consolidation algorithm.
  *
- * @author Manoel Campos da Silva Filho
- * @since CloudSim Plus 4.0.0
+ * @author Caitlin Fischer
  */
-public class PlanetLabExample1 {
+public class SecurityAwareEnergyEfficientVMConsolidation {
     private static final int HOSTS = 3;
     private static final int HOST_PES = 10;
 
@@ -76,22 +50,13 @@ public class PlanetLabExample1 {
     private static final int CLOUDLET_PES = 2;
     private static final int CLOUDLET_LENGTH = 100000000;
 
-    private static final String TRACE_FILE = "workload/planetlab/20110303/75-130-96-12_static_oxfr_ma_charter_com_irisaple_wup";
-
-    /**
-     * The time interval in which precise values can be got from
-     * the PlanetLab {@link #TRACE_FILE}.
-     * Such a value must be also defined as the Datacenter
-     * scheduling interval to ensure that Cloudlets' processing
-     * is updated with the values read from the trace file
-     * at the given interval.
-     *
-     * @see UtilizationModelPlanetLab#getSchedulingInterval()
-     */
+    private static final String TRACE_FILE = "";
     private static final int SCHEDULING_INTERVAL = 300;
 
-    private VmAllocationPolicyMigrationLocalRegression allocationPolicy;
+    private static final double HOST_OVER_UTILIZATION_THRESHOLD = 0.9;
+    private static final double HOST_UNDER_UTILIZATION_THRESHOLD = 0.1;
 
+    private VmAllocationPolicyMigrationLocalRegression allocationPolicy;
     private final CloudSim simulation;
     private DatacenterBroker broker0;
     private List<Vm> vmList;
@@ -99,20 +64,15 @@ public class PlanetLabExample1 {
     private Datacenter datacenter0;
 
     public static void main(String[] args) {
-        new PlanetLabExample1();
+        new SecurityAwareEnergyEfficientVMConsolidation();
     }
 
-    private PlanetLabExample1() {
-        /*Enables just some level of log messages.
-          Make sure to import org.cloudsimplus.util.Log;*/
-        //Log.setLevel(ch.qos.logback.classic.Level.WARN);
-
-        final double startSecs = TimeUtil.currentTimeSecs();
-        System.out.printf("Simulation started at %s%n%n", LocalTime.now());
+    private SecurityAwareEnergyEfficientVMConsolidation() {
         simulation = new CloudSim();
         datacenter0 = createDatacenter();
 
-        //Creates a broker that is a software acting on behalf a cloud customer to manage his/her VMs and Cloudlets
+        // Creates a broker, which acts on behalf a cloud customer to manage
+        // manage VMs and Cloudlets.
         broker0 = new DatacenterBrokerSimple(simulation);
 
         vmList = createVms();
@@ -122,14 +82,10 @@ public class PlanetLabExample1 {
 
         simulation.start();
 
-        final List<Cloudlet> finishedCloudlets = broker0.getCloudletFinishedList();
-        new CloudletsTableBuilder(finishedCloudlets).build();
-        System.out.printf("Simulation finished at %s. Execution time: %.2f seconds%n", LocalTime.now(), TimeUtil.elapsedSeconds(startSecs));
+        final List<Cloudlet> doneCloudlets = broker0.getCloudletFinishedList();
+        new CloudletsTableBuilder(doneCloudlets).build();
     }
 
-    /**
-     * Creates a Datacenter and its Hosts.
-     */
     private Datacenter createDatacenter() {
         final List<Host> hostList = new ArrayList<>(HOSTS);
         for(int i = 0; i < HOSTS; i++) {
@@ -137,53 +93,52 @@ public class PlanetLabExample1 {
             hostList.add(host);
         }
 
-
+        // Do we need a fallback allocation policy? How do we know which policy
+        // is being used?
         final VmAllocationPolicyMigrationStaticThreshold fallback =
             new VmAllocationPolicyMigrationStaticThreshold(
-                new VmSelectionPolicyMinimumUtilization(),
+                new VmSelectionPolicyMinimumMigrationTime(),
                 0.7);
 
         this.allocationPolicy =
             new VmAllocationPolicyMigrationLocalRegression(
-                new VmSelectionPolicyMinimumUtilization(),
-                0.9, fallback);
+                new VmSelectionPolicyMinimumMigrationTime(),
+                HOST_OVER_UTILIZATION_THRESHOLD, fallback);
 
-        final DatacenterSimple dc = new DatacenterSimple(
-            simulation, hostList, allocationPolicy);
-        dc.setSchedulingInterval(SCHEDULING_INTERVAL);
-        return dc;
+        return new DatacenterSimple(simulation, hostList, allocationPolicy);
     }
 
     private Host createHost() {
         final List<Pe> peList = new ArrayList<>(HOST_PES);
         //List of Host's CPUs (Processing Elements, PEs)
-        IntStream.range(0, HOST_PES).forEach(i -> peList.add(new PeSimple(1000, new PeProvisionerSimple())));
+        for (int i = 0; i < HOST_PES; i++) {
+            //Uses a PeProvisionerSimple by default to provision PEs for VMs
+            peList.add(new PeSimple(1000));
+        }
 
         final long ram = 2048; //in Megabytes
         final long bw = 10000; //in Megabits/s
         final long storage = 1000000; //in Megabytes
-        Host host = new HostSimple(ram, bw, storage, peList);
-        host
-            .setRamProvisioner(new ResourceProvisionerSimple())
-            .setBwProvisioner(new ResourceProvisionerSimple())
-            .setVmScheduler(new VmSchedulerTimeShared());
+
+        HostSimple host = new HostSimple(ram, bw, storage, peList);
+        host.enableStateHistory();
+        host.setPowerModel(new PowerModelSpecPowerHpProLiantMl110G4Xeon3040());
+
+        /*
+        Uses ResourceProvisionerSimple by default for RAM and BW provisioning
+        and VmSchedulerSpaceShared for VM scheduling.
+        */
         return host;
     }
 
-    /**
-     * Creates a list of VMs.
-     */
     private List<Vm> createVms() {
         final List<Vm> list = new ArrayList<>(VMS);
         for (int i = 0; i < VMS; i++) {
-            Vm vm =
-                new VmSimple(i, VM_MIPS, VM_PES)
-                    .setRam(512).setBw(1000).setSize(10000)
-                    .setCloudletScheduler(new CloudletSchedulerTimeShared());
-
+            final Vm vm = new VmSimple(VM_MIPS, VM_PES);
+            vm.setRam(512).setBw(1000).setSize(10000);
+            vm.getUtilizationHistory().enable();
             list.add(vm);
         }
-
         return list;
     }
 
@@ -194,7 +149,12 @@ public class PlanetLabExample1 {
      */
     private List<Cloudlet> createCloudlets() {
         final List<Cloudlet> list = new ArrayList<>(CLOUDLETS);
-        final UtilizationModel utilizationCpu = UtilizationModelPlanetLab.getInstance(TRACE_FILE, SCHEDULING_INTERVAL);
+        final UtilizationModel utilizationCpu =
+            UtilizationModelPlanetLab.getInstance(TRACE_FILE, SCHEDULING_INTERVAL);
+
+        // Should we follow the approach in MigrationExample2_PowerUsage?
+        // It could be interesting to set the CPU of the last VM to increase
+        // differently.
         for (int i = 0; i < CLOUDLETS; i++) {
             Cloudlet cloudlet =
                 new CloudletSimple(i, CLOUDLET_LENGTH, CLOUDLET_PES)

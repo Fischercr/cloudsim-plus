@@ -60,7 +60,7 @@ public class BasicFirstExample {
     private static final int VMS = 2;
     private static final int VM_PES = 4;
 
-    private static final int CLOUDLETS = 4;
+    private static final int CLOUDLETS = 6;
     private static final int CLOUDLET_PES = 2;
     private static final int CLOUDLET_LENGTH = 10000;
 
@@ -162,3 +162,4 @@ public class BasicFirstExample {
         return list;
     }
 }
+

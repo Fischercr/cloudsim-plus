@@ -33,7 +33,8 @@ public abstract class PowerModelSpecPower extends PowerModelAbstract {
 
     @Override
 	protected double getPowerInternal(final double utilization) throws IllegalArgumentException {
-		if (utilization % 0.1 == 0) {
+		System.out.println("getPowerInternal");
+    if (utilization % 0.1 == 0) {
 			return getPowerData((int) (utilization * 10));
 		}
 

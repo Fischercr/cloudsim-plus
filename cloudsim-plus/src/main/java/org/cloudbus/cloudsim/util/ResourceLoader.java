@@ -30,7 +30,7 @@ public final class ResourceLoader {
      */
     public static FileReader getFileReader(final String filePath){
         try {
-            return new FileReader(filePath);
+            return new FileReader("/Users/caitlinfischer/courses_fall_2019/seg4135/project/code/cloudsim-plus/cloudsim-plus-examples/src/main/resources/workload/planetlab/20110303/146-179_surfsnel_dsl_internl_net_colostate_557");
         } catch (FileNotFoundException e) {
             throw new UncheckedIOException(e);
         }
@@ -61,7 +61,7 @@ public final class ResourceLoader {
      */
     public static String getResourcePath(final Class klass, final String name) {
         final URL resource = getResourceUrl(klass, name);
-        return resource == null || resource.getPath() == null ? "" : resource.getFile();
+        return resource == null || resource.getPath() == null ? "" : "/Users/caitlinfischer/courses_fall_2019/seg4135/project/code/cloudsim-plus/cloudsim-plus-examples/src/main/resources/workload/planetlab/20110303/146-179_surfsnel_dsl_internl_net_colostate_557";
     }
 
     /**

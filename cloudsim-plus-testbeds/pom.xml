@@ -9,7 +9,7 @@
     </parent>
 
     <artifactId>cloudsim-plus-testbeds</artifactId>
-    <version>${global.version}</version>
+    <version>5.1.1</version>
     <name>CloudSim Plus Testbeds</name>
     <description>
         A set of more complex and comprehensive CloudSim Plus testbeds used to assess

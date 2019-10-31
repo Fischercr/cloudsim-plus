@@ -38,6 +38,7 @@ public abstract class PowerModelAbstract implements PowerModel {
 		}
 
 		if(!host.isActive()){
+            System.out.println("host not active");
 		    return 0;
         }
 
