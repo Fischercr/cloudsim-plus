@@ -143,7 +143,6 @@ public class HostSimple implements Host {
 
     /** @see #getFailedPesNumber() */
     private int failedPesNumber;
-    
     /**
      * Creates and powers on a Host without a pre-defined ID,
      * 10GB of RAM, 1000Mbps of Bandwidth and 500GB of Storage.

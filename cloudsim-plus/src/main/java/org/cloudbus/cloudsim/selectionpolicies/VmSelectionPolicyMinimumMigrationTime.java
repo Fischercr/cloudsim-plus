@@ -32,8 +32,6 @@ import java.util.List;
 public class VmSelectionPolicyMinimumMigrationTime implements VmSelectionPolicy {
 	@Override
 	public Vm getVmToMigrate(final Host host) {
-		// Update code to reflect the Security-Based Placement algorithm.
-
 		final List<Vm> migratableVms = host.getMigratableVms();
 		if (migratableVms.isEmpty()) {
 			return Vm.NULL;

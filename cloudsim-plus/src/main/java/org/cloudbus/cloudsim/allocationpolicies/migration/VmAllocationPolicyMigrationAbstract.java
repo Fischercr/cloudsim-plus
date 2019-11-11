@@ -347,6 +347,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
     protected Optional<Host> findHostForVmInternal(final Vm vm, final Stream<Host> hostStream){
         final Comparator<Host> hostPowerConsumptionComparator =
             comparingDouble(host -> getPowerDifferenceAfterAllocation(host, vm));
+            
         return additionalHostFilters(vm, hostStream).min(hostPowerConsumptionComparator);
     }
 

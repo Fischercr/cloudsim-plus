@@ -100,8 +100,7 @@ public class VmAllocationPolicyMigrationLocalRegression extends VmAllocationPoli
         try {
             //@TODO uncheck typecast
             final double predictedUtilization = computeHostUtilizationMeasure(host);
-            double threshold = predictedUtilization * getSafetyParameter();
-            return threshold;
+            return predictedUtilization * getSafetyParameter();
         } catch (IllegalStateException e) {
             return Double.MAX_VALUE;
         }

@@ -24,8 +24,6 @@
 package org.cloudsimplus.examples.traces;
 
 import org.cloudbus.cloudsim.allocationpolicies.VmAllocationPolicySimple;
-import org.cloudbus.cloudsim.allocationpolicies.migration.VmAllocationPolicyMigrationLocalRegression;
-import org.cloudbus.cloudsim.allocationpolicies.migration.VmAllocationPolicyMigrationStaticThreshold;
 import org.cloudbus.cloudsim.brokers.DatacenterBroker;
 import org.cloudbus.cloudsim.brokers.DatacenterBrokerSimple;
 import org.cloudbus.cloudsim.cloudlets.Cloudlet;
@@ -41,8 +39,6 @@ import org.cloudbus.cloudsim.resources.Pe;
 import org.cloudbus.cloudsim.resources.PeSimple;
 import org.cloudbus.cloudsim.schedulers.cloudlet.CloudletSchedulerTimeShared;
 import org.cloudbus.cloudsim.schedulers.vm.VmSchedulerTimeShared;
-import org.cloudbus.cloudsim.selectionpolicies.VmSelectionPolicyMinimumMigrationTime;
-import org.cloudbus.cloudsim.selectionpolicies.VmSelectionPolicyMinimumUtilization;
 import org.cloudbus.cloudsim.util.TimeUtil;
 import org.cloudbus.cloudsim.utilizationmodels.UtilizationModel;
 import org.cloudbus.cloudsim.utilizationmodels.UtilizationModelDynamic;
@@ -90,8 +86,6 @@ public class PlanetLabExample1 {
      */
     private static final int SCHEDULING_INTERVAL = 300;
 
-    private VmAllocationPolicyMigrationLocalRegression allocationPolicy;
-
     private final CloudSim simulation;
     private DatacenterBroker broker0;
     private List<Vm> vmList;
@@ -137,19 +131,7 @@ public class PlanetLabExample1 {
             hostList.add(host);
         }
 
-
-        final VmAllocationPolicyMigrationStaticThreshold fallback =
-            new VmAllocationPolicyMigrationStaticThreshold(
-                new VmSelectionPolicyMinimumUtilization(),
-                0.7);
-
-        this.allocationPolicy =
-            new VmAllocationPolicyMigrationLocalRegression(
-                new VmSelectionPolicyMinimumUtilization(),
-                0.9, fallback);
-
-        final DatacenterSimple dc = new DatacenterSimple(
-            simulation, hostList, allocationPolicy);
+        final DatacenterSimple dc = new DatacenterSimple(simulation, hostList, new VmAllocationPolicySimple());
         dc.setSchedulingInterval(SCHEDULING_INTERVAL);
         return dc;
     }
