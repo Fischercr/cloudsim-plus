@@ -53,6 +53,8 @@ import static java.util.stream.Collectors.*;
  * @since CloudSim Toolkit 1.0
  */
 public class HostSimple implements Host {
+    public int securityLevel;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(HostSimple.class.getSimpleName());
 
     private static long defaultRamCapacity = (long)Conversion.gigaToMega(10);
@@ -141,7 +143,7 @@ public class HostSimple implements Host {
 
     /** @see #getFailedPesNumber() */
     private int failedPesNumber;
-
+    
     /**
      * Creates and powers on a Host without a pre-defined ID,
      * 10GB of RAM, 1000Mbps of Bandwidth and 500GB of Storage.
@@ -326,6 +328,10 @@ public class HostSimple implements Host {
         defaultStorageCapacity = defaultCapacity;
     }
 
+    @Override public int getSecurityLevel() {
+        return securityLevel;
+    }
+
     @Override
     public double getTotalMipsCapacity() {
         return peList.stream()
@@ -399,7 +405,6 @@ public class HostSimple implements Host {
         }
 
         if(!allocateResourcesForVm(vm, false)){
-            System.out.print("Not enough resources for VM.");
             return false;
         }
 
@@ -475,7 +480,7 @@ public class HostSimple implements Host {
         return !isFailed() && hasEnoughResources(vm);
     }
 
-    private boolean hasEnoughResources(final Vm vm) {
+    protected boolean hasEnoughResources(final Vm vm) {
         /* Since && is a short-circuit operation,
          * the more complex method calls are placed last.
          * The freePesNumber and peList.size() are used just to improve performance

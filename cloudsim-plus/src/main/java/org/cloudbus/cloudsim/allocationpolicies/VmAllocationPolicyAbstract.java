@@ -273,7 +273,6 @@ public abstract class VmAllocationPolicyAbstract implements VmAllocationPolicy {
      */
     @Override
     public boolean allocateHostForVm(final Vm vm) {
-        System.out.println("allocateHostFormVm");
         if (getHostList().isEmpty()) {
             LOGGER.error(
                 "{}: {}: {} could not be allocated because there isn't any Host for Datacenter {}",
@@ -343,12 +342,8 @@ public abstract class VmAllocationPolicyAbstract implements VmAllocationPolicy {
 
     @Override
     public final Optional<Host> findHostForVm(final Vm vm) {
-        System.out.print("findHostForVmFunction == null ");
-        System.out.println(findHostForVmFunction == null);
         final Optional<Host> optional = findHostForVmFunction == null ? defaultFindHostForVm(vm) : findHostForVmFunction.apply(this, vm);
         //If the selected Host is not active, activate it (if it's already active, setActive has no effect)
-        System.out.print("optional.isPresent() ");
-        System.out.println(optional.isPresent());
         return optional.map(host -> host.setActive(true));
     }
 

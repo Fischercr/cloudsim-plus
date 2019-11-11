@@ -24,6 +24,7 @@ import org.cloudsimplus.listeners.VmDatacenterEventInfo;
 import org.cloudsimplus.listeners.VmHostEventInfo;
 
 import java.util.*;
+import java.util.Random;
 import java.util.stream.DoubleStream;
 import java.util.stream.LongStream;
 
@@ -42,6 +43,7 @@ import static java.util.stream.Collectors.toList;
  * @since CloudSim Toolkit 1.0
  */
 public class VmSimple extends CustomerEntityAbstract implements Vm {
+    public int securityLevel;
     /** @see #setDefaultRamCapacity(long) */
     private static long defaultRamCapacity = 1024;
     /** @see #setDefaultBwCapacity(long) */
@@ -242,6 +244,11 @@ public class VmSimple extends CustomerEntityAbstract implements Vm {
         //initiate number of free PEs as number of PEs of VM
         freePesNumber = numberOfPes;
         expectedFreePesNumber = numberOfPes;
+    }
+
+    @Override
+    public int getSecurityLevel() {
+        return securityLevel;
     }
 
     @Override

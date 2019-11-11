@@ -545,7 +545,6 @@ public class DatacenterSimple extends CloudSimEntity implements Datacenter {
      * @return true if a host was allocated to the VM; false otherwise
      */
     private boolean processVmCreate(final SimEvent evt) {
-        System.out.println("processVmCreate");
         final Vm vm = (Vm) evt.getData();
 
         final boolean hostAllocatedForVm = vmAllocationPolicy.allocateHostForVm(vm);

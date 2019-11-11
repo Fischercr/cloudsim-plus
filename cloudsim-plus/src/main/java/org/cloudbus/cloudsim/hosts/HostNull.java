@@ -22,6 +22,9 @@ import java.util.*;
  * @see Host#NULL
  */
 final class HostNull implements Host {
+    @Override public int getSecurityLevel() {
+        return 0;
+    }
     @Override public List<ResourceManageable> getResources() {
         return Collections.emptyList();
     }

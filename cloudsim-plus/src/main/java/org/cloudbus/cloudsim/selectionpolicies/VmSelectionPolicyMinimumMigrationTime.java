@@ -50,8 +50,10 @@ public class VmSelectionPolicyMinimumMigrationTime implements VmSelectionPolicy 
             * It should also consider the VM size.*/
 			final double metric = vm.getRam().getCapacity();
 			if (metric < minMetric) {
-				minMetric = metric;
-				vmToMigrate = vm;
+				if (host.getSecurityLevel() != vm.getSecurityLevel()) {				
+					minMetric = metric;
+					vmToMigrate = vm;					
+				}
 			}
 		}
 
