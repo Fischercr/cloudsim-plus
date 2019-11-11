@@ -26,6 +26,9 @@ import java.util.List;
  * @see Vm#NULL
  */
 class VmNull implements Vm {
+    @Override public int getSecurityLevel() {
+        return 0;
+    }
     @Override public void setId(long id) {/**/}
     @Override public long getId() {
         return -1;

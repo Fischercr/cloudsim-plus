@@ -75,6 +75,7 @@
         <license-maven-plugin.version>3.0</license-maven-plugin.version>
         <!-- License file to be used by the com.mycila.license-maven-plugin -->
         <copyrightfile>../COPYRIGHT</copyrightfile>
+        <maven.compiler.release>11</maven.compiler.release>
     </properties>
 
     <build>
@@ -84,8 +85,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.7.0</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <!-- <source>1.8</source>
+                    <target>1.8</target> -->
+                    <release>11</release>
                 </configuration>
             </plugin>
 

@@ -6,6 +6,7 @@
         <license-maven-plugin.version>3.0</license-maven-plugin.version>
         <!-- License file to be used by the com.mycila.license-maven-plugin -->
         <copyrightfile>COPYRIGHT</copyrightfile>
+        <maven.compiler.release>11</maven.compiler.release>
     </properties>
 
     <groupId>org.cloudsimplus</groupId>

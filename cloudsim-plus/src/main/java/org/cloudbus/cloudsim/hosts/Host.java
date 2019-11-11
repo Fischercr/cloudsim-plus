@@ -42,6 +42,8 @@ import java.util.SortedMap;
  * @since CloudSim Plus 1.0
  */
 public interface Host extends Machine, Comparable<Host> {
+    int getSecurityLevel();
+
     /**
      * The default value for the {@link #getIdleShutdownDeadline()}.
      * This value indicates that the Host won't be shutdown when becoming idle.

@@ -42,6 +42,8 @@ import java.util.function.Predicate;
  * @since CloudSim Plus 1.0
  */
 public interface Vm extends Machine, UniquelyIdentifiable, Comparable<Vm>, CustomerEntity, TimeZoned {
+    int getSecurityLevel();
+  
     Logger LOGGER = LoggerFactory.getLogger(Vm.class.getSimpleName());
 
     /**

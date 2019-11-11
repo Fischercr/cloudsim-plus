@@ -51,7 +51,7 @@ import static java.util.stream.Collectors.toSet;
  * @since CloudSim Toolkit 3.0
  */
 public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPolicyAbstract implements VmAllocationPolicyMigration {
-    public static final double DEF_UNDER_UTILIZATION_THRESHOLD = 0.35;
+    public static final double DEF_UNDER_UTILIZATION_THRESHOLD = 0.1;
     private static final Logger LOGGER = LoggerFactory.getLogger(VmAllocationPolicyMigrationAbstract.class.getSimpleName());
 
     /** @see #getUnderUtilizationThreshold() */
@@ -347,7 +347,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
     protected Optional<Host> findHostForVmInternal(final Vm vm, final Stream<Host> hostStream){
         final Comparator<Host> hostPowerConsumptionComparator =
             comparingDouble(host -> getPowerDifferenceAfterAllocation(host, vm));
-
+            
         return additionalHostFilters(vm, hostStream).min(hostPowerConsumptionComparator);
     }
 
