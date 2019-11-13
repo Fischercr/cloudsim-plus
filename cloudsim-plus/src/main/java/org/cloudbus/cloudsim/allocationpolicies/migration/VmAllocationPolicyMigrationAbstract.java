@@ -267,6 +267,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
      * @return true if the Host is overloaded, false otherwise
      */
     private boolean isHostOverloaded(final Host host, final double cpuUsagePercent){
+        System.out.println("cpu_usage: " + cpuUsagePercent + " getOverUtilizationThreshold(host): " + getOverUtilizationThreshold(host));
         return cpuUsagePercent > getOverUtilizationThreshold(host);
     }
 

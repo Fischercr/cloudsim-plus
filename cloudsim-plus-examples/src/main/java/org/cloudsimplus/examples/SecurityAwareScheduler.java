@@ -1,8 +1,6 @@
 package org.cloudsimplus.examples;
 
-import org.cloudbus.cloudsim.allocationpolicies.VmAllocationPolicySimple;
-import org.cloudbus.cloudsim.allocationpolicies.migration.VmAllocationPolicyMigrationLocalRegression;
-import org.cloudbus.cloudsim.allocationpolicies.migration.VmAllocationPolicyMigrationStaticThreshold;
+import org.cloudbus.cloudsim.allocationpolicies.migration.VmAllocationPolicyMigrationSecurityAware;
 import org.cloudbus.cloudsim.brokers.DatacenterBroker;
 import org.cloudbus.cloudsim.brokers.DatacenterBrokerSimple;
 import org.cloudbus.cloudsim.cloudlets.Cloudlet;
@@ -11,7 +9,7 @@ import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.datacenters.Datacenter;
 import org.cloudbus.cloudsim.datacenters.DatacenterSimple;
 import org.cloudbus.cloudsim.hosts.Host;
-import org.cloudbus.cloudsim.hosts.HostSecurityAwareEnergyEfficient;
+import org.cloudbus.cloudsim.hosts.HostSecurityAware;
 import org.cloudbus.cloudsim.hosts.HostStateHistoryEntry;
 import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
 import org.cloudbus.cloudsim.provisioners.ResourceProvisionerSimple;
@@ -21,7 +19,7 @@ import org.cloudbus.cloudsim.resources.Pe;
 import org.cloudbus.cloudsim.resources.PeSimple;
 import org.cloudbus.cloudsim.schedulers.cloudlet.CloudletSchedulerTimeShared;
 import org.cloudbus.cloudsim.schedulers.vm.VmSchedulerTimeShared;
-import org.cloudbus.cloudsim.selectionpolicies.VmSelectionPolicyMinimumMigrationTime;
+import org.cloudbus.cloudsim.selectionpolicies.VmSelectionPolicyMinimumUtilization;
 import org.cloudbus.cloudsim.utilizationmodels.UtilizationModel;
 import org.cloudbus.cloudsim.utilizationmodels.UtilizationModelDynamic;
 import org.cloudbus.cloudsim.utilizationmodels.UtilizationModelPlanetLab;
@@ -31,15 +29,14 @@ import org.cloudsimplus.builders.tables.CloudletsTableBuilder;
 
 import java.time.LocalTime;
 import java.util.*;
-import java.util.Random;
 
 /**
- * An implementation of Ahamed, Shahrestani, and Javadi's Security Aware and
- * Energy-Efficient Virtual Machine Consolidation algorithm.
+ * An implementation of Afoulki, Bousquet, and Rouzaud-Cornabas' Security-Aware
+ * Scheduler for Virtual Machines on IaaS Clouds algorithm.
  *
  * @author Caitlin Fischer
  */
-public class SecurityAwareEnergyEfficientVMConsolidation {
+public class SecurityAwareScheduler {
     // private static final int VMS = 1052;
     private static final int VMS = 8;
     private static final int VM_BANDWIDTH = 100;  // In Mbits / s.
@@ -81,7 +78,7 @@ public class SecurityAwareEnergyEfficientVMConsolidation {
     private static final double HOST_OVER_UTILIZATION_THRESHOLD = 0.9;
     private static final double HOST_UNDER_UTILIZATION_THRESHOLD = 0.1;
 
-    private VmAllocationPolicyMigrationLocalRegression allocationPolicy;
+    private VmAllocationPolicyMigrationSecurityAware allocationPolicy;
     private final CloudSim simulation;
     private DatacenterBroker broker0;
     private List<Host> hostList;
@@ -90,10 +87,10 @@ public class SecurityAwareEnergyEfficientVMConsolidation {
     private Datacenter datacenter0;
 
     public static void main(String[] args) {
-        new SecurityAwareEnergyEfficientVMConsolidation();
+        new SecurityAwareScheduler();
     }
 
-    private SecurityAwareEnergyEfficientVMConsolidation() {
+    private SecurityAwareScheduler() {
         System.out.println("Starting " + getClass().getSimpleName());
         simulation = new CloudSim();
         datacenter0 = createDatacenter();
@@ -123,26 +120,17 @@ public class SecurityAwareEnergyEfficientVMConsolidation {
 
     private Datacenter createDatacenter() {
         this.hostList = new ArrayList<>(HOSTS);
-        Random random = new Random(System.currentTimeMillis()); 
 
         for(int i = 0; i < HOSTS; i++) {
-            int level = random.nextInt(10) + 1;
-            System.out.println("host level: " + level);
-            Host host = createHost(level);
+            Host host = createHost();
             hostList.add(host);
         }
         System.out.println();
-        // Do we need a fallback allocation policy? How do we know which policy
-        // is being used?
-        final VmAllocationPolicyMigrationStaticThreshold fallback =
-            new VmAllocationPolicyMigrationStaticThreshold(
-                new VmSelectionPolicyMinimumMigrationTime(),
-                0.7);
 
         this.allocationPolicy =
-            new VmAllocationPolicyMigrationLocalRegression(
-                new VmSelectionPolicyMinimumMigrationTime(),
-                HOST_OVER_UTILIZATION_THRESHOLD, fallback);
+            new VmAllocationPolicyMigrationSecurityAware(
+                new VmSelectionPolicyMinimumUtilization(),
+                HOST_OVER_UTILIZATION_THRESHOLD);
 
         DatacenterSimple dc = new DatacenterSimple(
             simulation, hostList, allocationPolicy);
@@ -150,19 +138,17 @@ public class SecurityAwareEnergyEfficientVMConsolidation {
         return dc;
     }
 
-    private Host createHost(int level) {
+    private Host createHost() {
         //List of Host's CPUs (Processing Elements, PEs)
         final List<Pe> peList = createPeList();
 
         // 1000 is the default bandwidth capacity.
-        HostSecurityAwareEnergyEfficient host = 
-            new HostSecurityAwareEnergyEfficient(
+        HostSecurityAware host = new HostSecurityAware(
             HOST_RAM, HOST_BANDWIDTH, HOST_STORAGE, peList);
         // Do we want SpaceShared or TimeShared?
         host.setVmScheduler(new VmSchedulerTimeShared());
         host.enableStateHistory();
         host.setPowerModel(new PowerModelSpecPowerHpProLiantMl110G4Xeon3040());
-        host.securityLevel = level;
 
         return host;
     }
@@ -181,13 +167,11 @@ public class SecurityAwareEnergyEfficientVMConsolidation {
         Random random = new Random(System.currentTimeMillis());     
 
         for (int i = 0; i < VMS; i++) {
-            VmSimple vm = new VmSimple(VM_MIPS, VM_PES);
+            VmSimple vm = new VmSimple(i + 1, VM_MIPS, VM_PES);
             if (i > VMS / 2 + 1) {
                 vm.setSubmissionDelay(2000);
             }
-            int level = random.nextInt(10) + 1;
-            System.out.println("vm level: " + level);
-            vm.securityLevel = level;
+            vm.securityLevel = random.nextInt(10) + 1;
             vm.setRam(VM_RAM).setBw(VM_BANDWIDTH).setSize(VM_STORAGE)
             .setCloudletScheduler(new CloudletSchedulerTimeShared());
             vm.getUtilizationHistory().enable();
@@ -220,9 +204,6 @@ public class SecurityAwareEnergyEfficientVMConsolidation {
             if (i > CLOUDLETS / 2 + 1) {
                 cloudlet.setSubmissionDelay(2000);
             }
-            // if (i >= CLOUDLETS * 2 /3) {
-            //     cloudlet.setSubmissionDelay(900);
-            // }
             list.add(cloudlet);
         }
 

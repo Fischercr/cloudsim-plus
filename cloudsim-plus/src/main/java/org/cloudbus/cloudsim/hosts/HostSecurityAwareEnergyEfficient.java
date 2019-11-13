@@ -18,7 +18,6 @@ public class HostSecurityAwareEnergyEfficient extends HostSimple {
         super(ram, bw, storage, peList, true);
     }
 
-
     @Override
     public boolean isSuitableForVm(final Vm vm) {
         return (!isFailed() && hasEnoughResources(vm)
