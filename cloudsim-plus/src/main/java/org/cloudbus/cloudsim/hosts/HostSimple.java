@@ -490,12 +490,11 @@ public class HostSimple implements Host {
          * The freePesNumber and peList.size() are used just to improve performance
          * and avoid calling the other complex methods
          * when all PEs are used. */
-        boolean response = freePesNumber > 0 && peList.size() >= vm.getNumberOfPes() &&
+        return freePesNumber > 0 && peList.size() >= vm.getNumberOfPes() &&
                storage.isAmountAvailable(vm.getStorage()) &&
                ramProvisioner.isSuitableForVm(vm, vm.getCurrentRequestedRam()) &&
                bwProvisioner.isSuitableForVm(vm, vm.getCurrentRequestedBw()) &&
                vmScheduler.isSuitableForVm(vm, vm.getCurrentRequestedMips());
-        return response;
     }
 
     @Override

@@ -25,6 +25,7 @@ import static java.util.stream.Collectors.toList;
  */
 public class VmAllocationPolicyMigrationSecurityAware extends 
     VmAllocationPolicyMigrationStaticThreshold {
+    private LinkedList<Vm> vmsToPlace = new LinkedList<>();
     /**
      * Creates a VmAllocationPolicyMigrationSecurityAware.
      *
@@ -39,8 +40,47 @@ public class VmAllocationPolicyMigrationSecurityAware extends
     }
 
     @Override
-    public Map<Vm, Host> getOptimizedAllocationMap(final List<? extends Vm> vmList) {
-        return new HashMap<>();
+    public Map<Vm, Host> getOptimizedAllocationMap(
+        final List<? extends Vm> vmList) {
+        //@TODO See https://github.com/manoelcampos/cloudsim-plus/issues/94
+
+        System.out.println("Number of VMs to be placed: " + vmsToPlace.size());
+        // return new HashMap<>();
+
+        // Unfortunately, performing migration does not work correctly for the
+        // simple case of migration for one VM as an error occurs when trying
+        // to restore some VMs.
+        //
+        // I suspect this is partially due to the above TODO and to the unusual
+        // circumstances in which VM migration occurs in Afoulki, Bousquet, and
+        // Rouzaud-Cornabas' security-aware VM placement algorithm. Migration
+        // is possible during VM placement; however, CloudSim was not built
+        // with this use case in mind.
+        //
+        // On a positive note, the correct hosts to be migrated are successfully
+        // identified.
+        // 
+        // Terminal output:
+        // INFO  300.10: VmAllocationPolicy: Reallocation of VMs from hosts: 
+        //       Vm 3 will be migrated from Host 0/DC 1 to Host 1/DC 1
+        // WARN  300.10: VmSchedulerTimeShared: It was requested an empty list
+        //       of PEs for Vm 2 in Host 1/DC 1
+        // ERROR Couldn't restore Vm 2 on Host 1/DC 1
+        // INFO  300.10: DatacenterSimple1: Migration of Vm 3 from Host 0/DC 1
+        //       to Host 1/DC 1 is started. It's expected to finish in 14.03
+        //       seconds, considering the 50% of bandwidth allowed for
+        //       migration and the VM RAM size.
+        // INFO  314.13: VmAllocationPolicyMigrationSecurityAware: Vm 3 has
+        //       been allocated to Host 1/DC 1
+        // INFO  314.13: Migration of Vm 3 to Host 1/DC 1 is completed
+        
+        if (vmsToPlace.isEmpty()) {
+            return new HashMap<>();
+        }
+        saveAllocation();
+        final Map<Vm, Host> migrationMap = attemptMigration(vmsToPlace.removeFirst());
+        restoreAllocation();
+        return migrationMap;
     }
 
     private int computeVmMigrationScore(
@@ -56,11 +96,11 @@ public class VmAllocationPolicyMigrationSecurityAware extends
                 + (int) runningVm.getCurrentRequestedTotalMips();
     }
 
-    private Optional<Host> simulateMigration(
+    private Map<Vm, Host> simulateMigration(
         final Host host, final Vm incomingVm) {
         LinkedList<Vm> vms = new LinkedList<Vm>(host.getVmList());
         if (vms.isEmpty()) {
-            return Optional.empty();
+            return new HashMap<>();
         }
 
         final int vmId = (int) incomingVm.getId();
@@ -71,8 +111,6 @@ public class VmAllocationPolicyMigrationSecurityAware extends
         final Comparator<Vm> vmComparator =
             comparingDouble(vm -> vm.getMigrationScore());
         Collections.sort(vms, vmComparator);
-
-        saveAllocation();
 
         LinkedList<Vm> adversaryVms = new LinkedList<Vm>();
         System.out.println(vms.size());
@@ -97,29 +135,7 @@ public class VmAllocationPolicyMigrationSecurityAware extends
             getDatacenter().getSimulation().clockStr(), System.lineSeparator(),
             builder.toString());
 
-        restoreAllocation();
-
-        if (migrationMap.isEmpty()) {
-            return Optional.empty();
-        }
-
-        Datacenter dc = getDatacenter();
-        if (isNotHostOverloadedAfterAllocation(host, incomingVm)) {
-            restoreAllocation();
-            for (final Map.Entry<Vm, Host> entry : migrationMap.entrySet()) {
-                dc.requestVmMigration(entry.getKey(), entry.getValue());
-            }
-            // dc.requestVm
-            return Optional.of(host);
-            // if (host.isSuitableForVm(incomingVm)) {
-            //     return Optional.of(host);
-            // }
-            // System.out.println("SOMETHING WENT WRONG");
-            // return Optional.empty();
-        } else {
-            System.out.println("YOU ARE HERE");
-            return Optional.empty();
-        }
+        return migrationMap;
     }
 
     /**
@@ -130,7 +146,7 @@ public class VmAllocationPolicyMigrationSecurityAware extends
      * @return an Optional containing a suitable host for the VM or an empty
      * Optional if not found
      */    
-    private Optional<Host> attemptMigration(final Vm vm) {
+    private Map<Vm, Host> attemptMigration(final Vm vm) {
         final Set<Host> excludedHosts = new HashSet<>();
         excludedHosts.add(vm.getHost());
 
@@ -152,7 +168,7 @@ public class VmAllocationPolicyMigrationSecurityAware extends
 
         if (maybe_host.isEmpty()
             || maybe_host.get().getMigrationScore(vmId) == Double.MAX_VALUE) {
-            return Optional.empty();
+            return new HashMap<>();
         }
 
         System.out.println("Trying to migrate VMs from host " 
@@ -179,7 +195,9 @@ public class VmAllocationPolicyMigrationSecurityAware extends
             hostStream.collect(Collectors.toCollection(ArrayList::new));
 
         if (hosts.size() == 0) {
-            return attemptMigration(vm);
+            vmsToPlace.add(vm);
+            return Optional.empty();
+            // return attemptMigration(vm);
         }
         if (hosts.size() == 1) {
             return Optional.of(hosts.get(0));

@@ -112,7 +112,7 @@ public class SecurityAwareScheduler {
             Comparator.comparingLong((Cloudlet c) -> c.getVm().getHost().getId())
                       .thenComparingLong(c -> c.getVm().getId()));
         System.out.printf("%n    WHEN A HOST CPU ALLOCATED MIPS IS LOWER THAN THE REQUESTED, IT'S DUE TO VM MIGRATION OVERHEAD)%n%n");
-        // hostList.stream().forEach(this::printHistory);
+        hostList.stream().forEach(this::printHistory);
         System.out.println(getClass().getSimpleName() + " finished!");
     }
 

@@ -609,10 +609,6 @@ public abstract class DatacenterBrokerAbstract extends CloudSimEntity implements
         boolean vmCreated = false;
         vmCreationAcks++;
 
-        if (vm.getHost().getId() >= 0) {
-            vm.setHost(vm.getHost());
-            processSuccessVmCreationInDatacenter(vm);
-        }
         //if the VM was successfully created in the requested Datacenter
         if (vm.isCreated()) {
             processSuccessVmCreationInDatacenter(vm);
