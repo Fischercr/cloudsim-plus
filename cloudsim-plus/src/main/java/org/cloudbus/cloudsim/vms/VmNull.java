@@ -29,6 +29,10 @@ class VmNull implements Vm {
     @Override public int getSecurityLevel() {
         return 0;
     }
+    @Override public int getMigrationScore() {
+        return 0;
+    }
+    @Override public void setMigrationScore(int score) {/**/}
     @Override public void setId(long id) {/**/}
     @Override public long getId() {
         return -1;

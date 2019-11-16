@@ -52,7 +52,7 @@ import static java.util.stream.Collectors.toSet;
  */
 public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPolicyAbstract implements VmAllocationPolicyMigration {
     public static final double DEF_UNDER_UTILIZATION_THRESHOLD = 0.1;
-    private static final Logger LOGGER = LoggerFactory.getLogger(VmAllocationPolicyMigrationAbstract.class.getSimpleName());
+    protected static final Logger LOGGER = LoggerFactory.getLogger(VmAllocationPolicyMigrationAbstract.class.getSimpleName());
 
     /** @see #getUnderUtilizationThreshold() */
     private double underUtilizationThreshold;
@@ -228,7 +228,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
      * @return true, if the host will be over utilized after VM placement;
      *         false otherwise
      */
-    private boolean isNotHostOverloadedAfterAllocation(final Host host, final Vm vm) {
+    protected boolean isNotHostOverloadedAfterAllocation(final Host host, final Vm vm) {
         if (!host.createTemporaryVm(vm)) {
             return false;
         }
@@ -267,7 +267,6 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
      * @return true if the Host is overloaded, false otherwise
      */
     private boolean isHostOverloaded(final Host host, final double cpuUsagePercent){
-        System.out.println("cpu_usage: " + cpuUsagePercent + " getOverUtilizationThreshold(host): " + getOverUtilizationThreshold(host));
         return cpuUsagePercent > getOverUtilizationThreshold(host);
     }
 
@@ -408,7 +407,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
         return migrationMap;
     }
 
-    private void appendVmMigrationMsgToStringBuilder(final StringBuilder builder, final Vm vm, final Host targetHost) {
+    protected void appendVmMigrationMsgToStringBuilder(final StringBuilder builder, final Vm vm, final Host targetHost) {
         if(LOGGER.isInfoEnabled()) {
             builder.append("      ").append(vm).append(" will be migrated from ")
               .append(vm.getHost()).append(" to ").append(targetHost)
@@ -456,7 +455,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
         vmList.sort(comparator.reversed());
     }
 
-    private <T extends Host> void addVmToMigrationMap(final Map<Vm, T> migrationMap, final Vm vm, final T targetHost) {
+    protected <T extends Host> void addVmToMigrationMap(final Map<Vm, T> migrationMap, final Vm vm, final T targetHost) {
         /*
         Temporarily creates the VM into the target Host so that
         when the next VM is got to be migrated, if the same Host
@@ -599,7 +598,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
      *
      * @see #savedAllocation
      */
-    private void saveAllocation() {
+    protected void saveAllocation() {
         savedAllocation.clear();
         for (final Host host : getHostList()) {
             for (final Vm vm : host.getVmList()) {
@@ -615,7 +614,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
      *
      * @see #savedAllocation
      */
-    private void restoreAllocation() {
+    protected void restoreAllocation() {
         for (final Host host : getHostList()) {
             host.destroyAllVms();
             host.reallocateMigratingInVms();
@@ -623,6 +622,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
 
         for (final Vm vm : savedAllocation.keySet()) {
             final Host host = savedAllocation.get(vm);
+            vm.setCreated(true);
             if (!host.createTemporaryVm(vm)) {
                 LOGGER.error("Couldn't restore {} on {}", vm, host);
                 return;

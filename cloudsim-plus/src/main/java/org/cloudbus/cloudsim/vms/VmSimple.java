@@ -44,6 +44,7 @@ import static java.util.stream.Collectors.toList;
  */
 public class VmSimple extends CustomerEntityAbstract implements Vm {
     public int securityLevel;
+    public int migrationScore;
     /** @see #setDefaultRamCapacity(long) */
     private static long defaultRamCapacity = 1024;
     /** @see #setDefaultBwCapacity(long) */
@@ -249,6 +250,14 @@ public class VmSimple extends CustomerEntityAbstract implements Vm {
     @Override
     public int getSecurityLevel() {
         return securityLevel;
+    }
+    @Override
+    public int getMigrationScore() {
+        return migrationScore;
+    }
+    @Override
+    public void setMigrationScore(final int score) {
+        migrationScore = score;
     }
 
     @Override

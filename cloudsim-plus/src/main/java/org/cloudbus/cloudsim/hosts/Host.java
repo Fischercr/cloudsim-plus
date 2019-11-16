@@ -43,6 +43,7 @@ import java.util.SortedMap;
  */
 public interface Host extends Machine, Comparable<Host> {
     int getSecurityLevel();
+    double getMigrationScore(int vmId);
 
     /**
      * The default value for the {@link #getIdleShutdownDeadline()}.
@@ -79,6 +80,8 @@ public interface Host extends Machine, Comparable<Host> {
      * @return true if is suitable for vm, false otherwise
      */
     boolean isSuitableForVm(Vm vm);
+
+    boolean hasEnoughResources(Vm vm);
 
     /**
      * Checks if the Host is powered-on or not.

@@ -25,6 +25,9 @@ final class HostNull implements Host {
     @Override public int getSecurityLevel() {
         return 0;
     }
+    @Override public double getMigrationScore(int vmId) {
+        return 0;
+    }
     @Override public List<ResourceManageable> getResources() {
         return Collections.emptyList();
     }
@@ -97,6 +100,9 @@ final class HostNull implements Host {
         return false;
     }
     @Override public boolean isSuitableForVm(Vm vm) {
+        return false;
+    }
+    @Override public boolean hasEnoughResources(Vm vm) {
         return false;
     }
     @Override public boolean isActive() { return false; }

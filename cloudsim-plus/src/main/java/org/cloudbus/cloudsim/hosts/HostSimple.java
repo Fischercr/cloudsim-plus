@@ -331,6 +331,10 @@ public class HostSimple implements Host {
         return securityLevel;
     }
 
+    @Override public double getMigrationScore(final int vmId) {
+        return 0;
+    }
+
     @Override
     public double getTotalMipsCapacity() {
         return peList.stream()
@@ -479,17 +483,19 @@ public class HostSimple implements Host {
         return !isFailed() && hasEnoughResources(vm);
     }
 
-    protected boolean hasEnoughResources(final Vm vm) {
+    @Override
+    public boolean hasEnoughResources(final Vm vm) {
         /* Since && is a short-circuit operation,
          * the more complex method calls are placed last.
          * The freePesNumber and peList.size() are used just to improve performance
          * and avoid calling the other complex methods
          * when all PEs are used. */
-        return freePesNumber > 0 && peList.size() >= vm.getNumberOfPes() &&
+        boolean response = freePesNumber > 0 && peList.size() >= vm.getNumberOfPes() &&
                storage.isAmountAvailable(vm.getStorage()) &&
                ramProvisioner.isSuitableForVm(vm, vm.getCurrentRequestedRam()) &&
                bwProvisioner.isSuitableForVm(vm, vm.getCurrentRequestedBw()) &&
                vmScheduler.isSuitableForVm(vm, vm.getCurrentRequestedMips());
+        return response;
     }
 
     @Override

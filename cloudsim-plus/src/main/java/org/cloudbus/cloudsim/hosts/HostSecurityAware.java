@@ -14,8 +14,54 @@ import java.util.List;
  */
 public class HostSecurityAware extends HostSimple {
     public HostSecurityAware(
-      final long ram, final long bw, final long storage, final List<Pe> peList) {
+      final long ram, final long bw, final long storage,
+      final List<Pe> peList) {
         super(ram, bw, storage, peList, true);
+    }
+
+    /**
+     * Calculates the migration score of candidate hosts according to the
+     * algorithm proposed by Afoulki, Bousquet, and Rouzaud-Cornabas.
+     *
+     * A host's total score depends on the number of adversary VMs running on
+     * it, the number of adversary users who own VMs running on the host, and
+     * the host's available CPU and memory resources.
+     *
+     * The host with the fewest number of adversary VMs and users and with the
+     * most resources has the lowest score and is the best host from which to
+     * migrate VMs.
+     *
+     * @param host the host whose migration score is to be calculated
+     * @param vm the VM that needs to be placed on a host
+     * @return the host's score
+     */
+    @Override public double getMigrationScore(final int vmId) {
+        int num_incompatible_vms = 0;
+        List<Vm> vms = getVmList();
+        for (Vm runningVm : vms) {
+            // The IDs were chosen to be integers, so this cast is safe.
+            int runningVmId = (int) runningVm.getId();
+            if (runningVmId == 1) {
+                // A VM with the ID 1 is an adversary to all users.
+                return Double.MAX_VALUE;
+            }
+            if (vmId % runningVmId == 0 || runningVmId % vmId == 0) {
+                ++num_incompatible_vms;
+            }
+        }
+
+        // In this simulation, we assume that all jobs are submitted by
+        // different users.
+        final int num_incompatible_users = num_incompatible_vms;
+
+        // Casting is safe as integers were chosen for the RAM values.
+        double resources = getCpuPercentUtilization()
+            + (double) getRamUtilization()
+            / (double) getRamProvisioner().getCapacity();
+        
+        return ((double) (num_incompatible_vms
+            + num_incompatible_users + 1))
+            * resources / 2.0;
     }
 
     @Override
@@ -40,7 +86,6 @@ public class HostSecurityAware extends HostSimple {
                 long id1 = vm.getId();
                 long id2 = runningVm.getId(); 
                 if (id1 % id2 == 0 || id2 % id1 == 0) {
-                    System.out.println("id1: " + id1 + " id2: " + id2);
                     return false;
                 } 
             }

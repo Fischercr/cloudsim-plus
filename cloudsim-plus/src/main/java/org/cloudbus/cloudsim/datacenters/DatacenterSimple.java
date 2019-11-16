@@ -741,7 +741,6 @@ public class DatacenterSimple extends CloudSimEntity implements Datacenter {
             schedule(nextSimulationTime, CloudSimTags.VM_UPDATE_CLOUDLET_PROCESSING);
         }
         setLastProcessTime(getSimulation().clock());
-
         checkIfVmMigrationsAreNeeded();
         return nextSimulationTime;
     }
@@ -761,6 +760,7 @@ public class DatacenterSimple extends CloudSimEntity implements Datacenter {
      * <p><b>This is an expensive operation for large scale simulations.</b></p>
      */
     private void checkIfVmMigrationsAreNeeded() {
+        System.out.println("CHECK IF VM MIGRATIONS ARE NEEDED");
         if (!isMigrationsEnabled()) {
             return;
         }

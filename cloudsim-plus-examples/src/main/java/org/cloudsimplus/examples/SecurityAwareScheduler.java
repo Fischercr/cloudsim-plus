@@ -19,7 +19,7 @@ import org.cloudbus.cloudsim.resources.Pe;
 import org.cloudbus.cloudsim.resources.PeSimple;
 import org.cloudbus.cloudsim.schedulers.cloudlet.CloudletSchedulerTimeShared;
 import org.cloudbus.cloudsim.schedulers.vm.VmSchedulerTimeShared;
-import org.cloudbus.cloudsim.selectionpolicies.VmSelectionPolicyMinimumUtilization;
+import org.cloudbus.cloudsim.selectionpolicies.VmSelectionPolicySecurityAwareScheduler;
 import org.cloudbus.cloudsim.utilizationmodels.UtilizationModel;
 import org.cloudbus.cloudsim.utilizationmodels.UtilizationModelDynamic;
 import org.cloudbus.cloudsim.utilizationmodels.UtilizationModelPlanetLab;
@@ -38,20 +38,20 @@ import java.util.*;
  */
 public class SecurityAwareScheduler {
     // private static final int VMS = 1052;
-    private static final int VMS = 8;
+    private static final int VMS = 6;
     private static final int VM_BANDWIDTH = 100;  // In Mbits / s.
-    private static final int VM_MIPS = 2500;
+    private static final int VM_MIPS = 1000;
     private static final int VM_PES = 1;
     private static final int VM_RAM = 1024;  // In MB.
     private static final int VM_STORAGE = 2500;  // In MB.
 
     // private static final int HOSTS = 800;
-    private static final int HOSTS = 6;
+    private static final int HOSTS = 3;
     // The default bandwidth capacity is 1000.
     private static final int HOST_BANDWIDTH = (VMS + 1) * VM_BANDWIDTH;
     // Should it be 1330 per PE instead of 2660?
     private static final int HOST_MIPS = 2660;
-    private static final int HOST_PES = 2;
+    private static final int HOST_PES = 4;
     private static final int HOST_RAM = 8192;  // In MB.
     private static final int HOST_STORAGE = 80000;  // In MB.
 
@@ -107,14 +107,12 @@ public class SecurityAwareScheduler {
         simulation.start();
 
         final List<Cloudlet> doneCloudlets = broker0.getCloudletFinishedList();
-        // new CloudletsTableBuilder(doneCloudlets).build();
         new CloudletsTableBuilder(doneCloudlets).build();
         doneCloudlets.sort(
             Comparator.comparingLong((Cloudlet c) -> c.getVm().getHost().getId())
                       .thenComparingLong(c -> c.getVm().getId()));
-        // new CloudletsTableBuilder(doneCloudlets).build();
         System.out.printf("%n    WHEN A HOST CPU ALLOCATED MIPS IS LOWER THAN THE REQUESTED, IT'S DUE TO VM MIGRATION OVERHEAD)%n%n");
-        hostList.stream().forEach(this::printHistory);
+        // hostList.stream().forEach(this::printHistory);
         System.out.println(getClass().getSimpleName() + " finished!");
     }
 
@@ -129,7 +127,7 @@ public class SecurityAwareScheduler {
 
         this.allocationPolicy =
             new VmAllocationPolicyMigrationSecurityAware(
-                new VmSelectionPolicyMinimumUtilization(),
+                new VmSelectionPolicySecurityAwareScheduler(),
                 HOST_OVER_UTILIZATION_THRESHOLD);
 
         DatacenterSimple dc = new DatacenterSimple(
@@ -163,15 +161,10 @@ public class SecurityAwareScheduler {
 
     private List<Vm> createVms() {
         // Why is this list final?
-        final List<Vm> list = new ArrayList<>(VMS);
-        Random random = new Random(System.currentTimeMillis());     
+        final List<Vm> list = new ArrayList<>(VMS);     
 
         for (int i = 0; i < VMS; i++) {
             VmSimple vm = new VmSimple(i + 1, VM_MIPS, VM_PES);
-            if (i > VMS / 2 + 1) {
-                vm.setSubmissionDelay(2000);
-            }
-            vm.securityLevel = random.nextInt(10) + 1;
             vm.setRam(VM_RAM).setBw(VM_BANDWIDTH).setSize(VM_STORAGE)
             .setCloudletScheduler(new CloudletSchedulerTimeShared());
             vm.getUtilizationHistory().enable();
@@ -201,9 +194,6 @@ public class SecurityAwareScheduler {
                     .setUtilizationModelCpu(utilizationCpu)
                     .setUtilizationModelBw(new UtilizationModelDynamic(0.6))
                     .setUtilizationModelRam(new UtilizationModelDynamic(0.6));
-            if (i > CLOUDLETS / 2 + 1) {
-                cloudlet.setSubmissionDelay(2000);
-            }
             list.add(cloudlet);
         }
 

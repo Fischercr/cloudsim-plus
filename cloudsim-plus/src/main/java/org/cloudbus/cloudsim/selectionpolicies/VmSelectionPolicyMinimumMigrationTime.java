@@ -26,7 +26,7 @@ import java.util.List;
  * Issue 13, Pages: 1397-1420, John Wiley and Sons, Ltd, New York, USA, 2012</a>
  * </ul>
  *
- * @author Anton Beloglazov
+ * @author Anton Beloglazov, modified by Caitlin Fischer
  * @since CloudSim Toolkit 3.0
  */
 public class VmSelectionPolicyMinimumMigrationTime implements VmSelectionPolicy {
