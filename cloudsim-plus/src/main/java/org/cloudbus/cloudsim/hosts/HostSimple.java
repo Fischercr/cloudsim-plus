@@ -490,6 +490,22 @@ public class HostSimple implements Host {
          * The freePesNumber and peList.size() are used just to improve performance
          * and avoid calling the other complex methods
          * when all PEs are used. */
+        int numBusy = getVmList().size() + getVmsMigratingIn().size()
+            + getVmsMigratingOut().size();
+        int countBusy = 0;
+        for (Pe p : peList) {
+            if (p.getStatus() == Pe.Status.BUSY) {
+                ++countBusy;
+            }
+        }
+        for (Pe p : peList) {
+            if (countBusy > numBusy && p.getStatus() == Pe.Status.BUSY) {
+                p.setStatus(Pe.Status.FREE);
+                --countBusy;
+            }
+        }
+        freePesNumber = peList.size() - numBusy;
+
         return freePesNumber > 0 && peList.size() >= vm.getNumberOfPes() &&
                storage.isAmountAvailable(vm.getStorage()) &&
                ramProvisioner.isSuitableForVm(vm, vm.getCurrentRequestedRam()) &&

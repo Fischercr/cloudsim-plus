@@ -40,31 +40,27 @@ import java.util.Random;
  * @author Caitlin Fischer
  */
 public class SecurityAwareEnergyEfficientVMConsolidation {
-    // private static final int VMS = 1052;
     private static final int VMS = 8;
     private static final int VM_BANDWIDTH = 100;  // In Mbits / s.
-    private static final int VM_MIPS = 2500;
+    private static final int VM_MIPS = 1000;
     private static final int VM_PES = 1;
     private static final int VM_RAM = 1024;  // In MB.
     private static final int VM_STORAGE = 2500;  // In MB.
 
-    // private static final int HOSTS = 800;
-    private static final int HOSTS = 6;
-    // The default bandwidth capacity is 1000.
+    private static final int HOSTS = 3;
     private static final int HOST_BANDWIDTH = (VMS + 1) * VM_BANDWIDTH;
-    // Should it be 1330 per PE instead of 2660?
     private static final int HOST_MIPS = 2660;
-    private static final int HOST_PES = 2;
+    private static final int HOST_PES = 4;
     private static final int HOST_RAM = 8192;  // In MB.
     private static final int HOST_STORAGE = 80000;  // In MB.
 
     private static final int CLOUDLETS = VMS - 1;
     private static final int CLOUDLET_FILE_SIZE = 256;
-    // The length or size (in MI) of this cloudlet to be executed in a VM.
     private static final int CLOUDLET_LENGTH = 350000;
     private static final int CLOUDLET_PES = VM_PES;
 
-    private static final String TRACE_FILE = "workload/planetlab/20110303/75-130-96-12_static_oxfr_ma_charter_com_irisaple_wup";
+    private static final String TRACE_FILE = 
+        "workload/planetlab/20110303/75-130-96-12_static_oxfr_ma_charter_com_irisaple_wup";
 
     /**
      * The time interval in which precise values can be got from
@@ -110,12 +106,10 @@ public class SecurityAwareEnergyEfficientVMConsolidation {
         simulation.start();
 
         final List<Cloudlet> doneCloudlets = broker0.getCloudletFinishedList();
-        // new CloudletsTableBuilder(doneCloudlets).build();
         new CloudletsTableBuilder(doneCloudlets).build();
         doneCloudlets.sort(
             Comparator.comparingLong((Cloudlet c) -> c.getVm().getHost().getId())
                       .thenComparingLong(c -> c.getVm().getId()));
-        // new CloudletsTableBuilder(doneCloudlets).build();
         System.out.printf("%n    WHEN A HOST CPU ALLOCATED MIPS IS LOWER THAN THE REQUESTED, IT'S DUE TO VM MIGRATION OVERHEAD)%n%n");
         hostList.stream().forEach(this::printHistory);
         System.out.println(getClass().getSimpleName() + " finished!");
@@ -132,8 +126,7 @@ public class SecurityAwareEnergyEfficientVMConsolidation {
             hostList.add(host);
         }
         System.out.println();
-        // Do we need a fallback allocation policy? How do we know which policy
-        // is being used?
+
         final VmAllocationPolicyMigrationStaticThreshold fallback =
             new VmAllocationPolicyMigrationStaticThreshold(
                 new VmSelectionPolicyMinimumMigrationTime(),
@@ -151,14 +144,12 @@ public class SecurityAwareEnergyEfficientVMConsolidation {
     }
 
     private Host createHost(int level) {
-        //List of Host's CPUs (Processing Elements, PEs)
+        // List of Host's CPUs (Processing Elements, PEs)
         final List<Pe> peList = createPeList();
 
-        // 1000 is the default bandwidth capacity.
         HostSecurityAwareEnergyEfficient host = 
             new HostSecurityAwareEnergyEfficient(
             HOST_RAM, HOST_BANDWIDTH, HOST_STORAGE, peList);
-        // Do we want SpaceShared or TimeShared?
         host.setVmScheduler(new VmSchedulerTimeShared());
         host.enableStateHistory();
         host.setPowerModel(new PowerModelSpecPowerHpProLiantMl110G4Xeon3040());
@@ -176,20 +167,19 @@ public class SecurityAwareEnergyEfficientVMConsolidation {
     }
 
     private List<Vm> createVms() {
-        // Why is this list final?
         final List<Vm> list = new ArrayList<>(VMS);
         Random random = new Random(System.currentTimeMillis());     
 
         for (int i = 0; i < VMS; i++) {
             VmSimple vm = new VmSimple(VM_MIPS, VM_PES);
-            if (i > VMS / 2 + 1) {
-                vm.setSubmissionDelay(2000);
-            }
+            // if (i > VMS / 2 + 1) {
+            //     vm.setSubmissionDelay(2000);
+            // }
             int level = random.nextInt(10) + 1;
             System.out.println("vm level: " + level);
             vm.securityLevel = level;
             vm.setRam(VM_RAM).setBw(VM_BANDWIDTH).setSize(VM_STORAGE)
-            .setCloudletScheduler(new CloudletSchedulerTimeShared());
+                .setCloudletScheduler(new CloudletSchedulerTimeShared());
             vm.getUtilizationHistory().enable();
             list.add(vm);
         }
@@ -217,12 +207,9 @@ public class SecurityAwareEnergyEfficientVMConsolidation {
                     .setUtilizationModelCpu(utilizationCpu)
                     .setUtilizationModelBw(new UtilizationModelDynamic(0.6))
                     .setUtilizationModelRam(new UtilizationModelDynamic(0.6));
-            if (i > CLOUDLETS / 2 + 1) {
-                cloudlet.setSubmissionDelay(2000);
+            if (i >= VMS - 1) {
+                cloudlet.setSubmissionDelay(1000);
             }
-            // if (i >= CLOUDLETS * 2 /3) {
-            //     cloudlet.setSubmissionDelay(900);
-            // }
             list.add(cloudlet);
         }
 

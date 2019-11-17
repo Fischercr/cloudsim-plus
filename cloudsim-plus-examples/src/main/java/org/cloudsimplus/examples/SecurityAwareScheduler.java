@@ -7,7 +7,7 @@ import org.cloudbus.cloudsim.cloudlets.Cloudlet;
 import org.cloudbus.cloudsim.cloudlets.CloudletSimple;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.datacenters.Datacenter;
-import org.cloudbus.cloudsim.datacenters.DatacenterSimple;
+import org.cloudbus.cloudsim.datacenters.DatacenterSecurityAware;
 import org.cloudbus.cloudsim.hosts.Host;
 import org.cloudbus.cloudsim.hosts.HostSecurityAware;
 import org.cloudbus.cloudsim.hosts.HostStateHistoryEntry;
@@ -37,19 +37,15 @@ import java.util.*;
  * @author Caitlin Fischer
  */
 public class SecurityAwareScheduler {
-    // private static final int VMS = 1052;
-    private static final int VMS = 6;
+    private static final int VMS = 8;
     private static final int VM_BANDWIDTH = 100;  // In Mbits / s.
     private static final int VM_MIPS = 1000;
     private static final int VM_PES = 1;
     private static final int VM_RAM = 1024;  // In MB.
     private static final int VM_STORAGE = 2500;  // In MB.
 
-    // private static final int HOSTS = 800;
     private static final int HOSTS = 3;
-    // The default bandwidth capacity is 1000.
     private static final int HOST_BANDWIDTH = (VMS + 1) * VM_BANDWIDTH;
-    // Should it be 1330 per PE instead of 2660?
     private static final int HOST_MIPS = 2660;
     private static final int HOST_PES = 4;
     private static final int HOST_RAM = 8192;  // In MB.
@@ -57,11 +53,11 @@ public class SecurityAwareScheduler {
 
     private static final int CLOUDLETS = VMS - 1;
     private static final int CLOUDLET_FILE_SIZE = 256;
-    // The length or size (in MI) of this cloudlet to be executed in a VM.
     private static final int CLOUDLET_LENGTH = 350000;
     private static final int CLOUDLET_PES = VM_PES;
 
-    private static final String TRACE_FILE = "workload/planetlab/20110303/75-130-96-12_static_oxfr_ma_charter_com_irisaple_wup";
+    private static final String TRACE_FILE = 
+        "workload/planetlab/20110303/75-130-96-12_static_oxfr_ma_charter_com_irisaple_wup";
 
     /**
      * The time interval in which precise values can be got from
@@ -130,20 +126,19 @@ public class SecurityAwareScheduler {
                 new VmSelectionPolicySecurityAwareScheduler(),
                 HOST_OVER_UTILIZATION_THRESHOLD);
 
-        DatacenterSimple dc = new DatacenterSimple(
+        DatacenterSecurityAware dc = new DatacenterSecurityAware(
             simulation, hostList, allocationPolicy);
         dc.setSchedulingInterval(SCHEDULING_INTERVAL);
         return dc;
     }
 
     private Host createHost() {
-        //List of Host's CPUs (Processing Elements, PEs)
+        // List of Host's CPUs (Processing Elements, PEs)
         final List<Pe> peList = createPeList();
 
         // 1000 is the default bandwidth capacity.
         HostSecurityAware host = new HostSecurityAware(
             HOST_RAM, HOST_BANDWIDTH, HOST_STORAGE, peList);
-        // Do we want SpaceShared or TimeShared?
         host.setVmScheduler(new VmSchedulerTimeShared());
         host.enableStateHistory();
         host.setPowerModel(new PowerModelSpecPowerHpProLiantMl110G4Xeon3040());
@@ -160,7 +155,6 @@ public class SecurityAwareScheduler {
     }
 
     private List<Vm> createVms() {
-        // Why is this list final?
         final List<Vm> list = new ArrayList<>(VMS);     
 
         for (int i = 0; i < VMS; i++) {
@@ -194,6 +188,9 @@ public class SecurityAwareScheduler {
                     .setUtilizationModelCpu(utilizationCpu)
                     .setUtilizationModelBw(new UtilizationModelDynamic(0.6))
                     .setUtilizationModelRam(new UtilizationModelDynamic(0.6));
+                if (i >= VMS - 1) {
+                    cloudlet.setSubmissionDelay(1000);
+                }
             list.add(cloudlet);
         }
 
