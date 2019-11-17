@@ -40,14 +40,14 @@ import java.util.Random;
  * @author Caitlin Fischer
  */
 public class SecurityAwareEnergyEfficientVMConsolidation {
-    private static final int VMS = 8;
+    private static final int VMS = 800;
     private static final int VM_BANDWIDTH = 100;  // In Mbits / s.
     private static final int VM_MIPS = 1000;
     private static final int VM_PES = 1;
     private static final int VM_RAM = 1024;  // In MB.
     private static final int VM_STORAGE = 2500;  // In MB.
 
-    private static final int HOSTS = 3;
+    private static final int HOSTS = 300;
     private static final int HOST_BANDWIDTH = (VMS + 1) * VM_BANDWIDTH;
     private static final int HOST_MIPS = 2660;
     private static final int HOST_PES = 4;
@@ -207,8 +207,8 @@ public class SecurityAwareEnergyEfficientVMConsolidation {
                     .setUtilizationModelCpu(utilizationCpu)
                     .setUtilizationModelBw(new UtilizationModelDynamic(0.6))
                     .setUtilizationModelRam(new UtilizationModelDynamic(0.6));
-            if (i >= VMS - 1) {
-                cloudlet.setSubmissionDelay(1000);
+            if (i >= VMS - 30) {
+                cloudlet.setSubmissionDelay(9000);
             }
             list.add(cloudlet);
         }

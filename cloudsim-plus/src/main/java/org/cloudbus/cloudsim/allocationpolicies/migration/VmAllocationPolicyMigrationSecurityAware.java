@@ -43,18 +43,47 @@ public class VmAllocationPolicyMigrationSecurityAware extends
     public Map<Vm, Host> getOptimizedAllocationMap(
         final List<? extends Vm> vmList) {
         //@TODO See https://github.com/manoelcampos/cloudsim-plus/issues/94
-        // return new HashMap<>();
-        
-        if (vmsToPlace.isEmpty()) {
-            return new HashMap<>();
-        }
 
-        Vm vmToPlace = vmsToPlace.removeFirst();
-        saveAllocation();
-        final Map<Vm, Host> migrationMap = attemptMigration(vmToPlace);
-        migrationMap.put(vmToPlace, null);
-        restoreAllocation();
-        return migrationMap;
+        System.out.println("Number of VMs to be placed: " + vmsToPlace.size());
+        return new HashMap<>();
+
+        // Unfortunately, performing migration does not work correctly for the  
+        // simple case of migration for one VM as an error occurs when trying   
+        // to restore some VMs. 
+        //  
+        // I suspect this is partially due to the above TODO and to the unusual 
+        // circumstances in which VM migration occurs in Afoulki, Bousquet, and 
+        // Rouzaud-Cornabas' security-aware VM placement algorithm. Migration   
+        // is possible during VM placement; however, CloudSim was not built 
+        // with this use case in mind.  
+        //  
+        // On a positive note, the correct hosts to be migrated are successfully    
+        // identified.  
+        //  
+        // Terminal output: 
+        // INFO  300.10: VmAllocationPolicy: Reallocation of VMs from hosts:    
+        //       Vm 3 will be migrated from Host 0/DC 1 to Host 1/DC 1  
+        // WARN  300.10: VmSchedulerTimeShared: It was requested an empty list  
+        //       of PEs for Vm 2 in Host 1/DC 1 
+        // ERROR Couldn't restore Vm 2 on Host 1/DC 1   
+        // INFO  300.10: DatacenterSimple1: Migration of Vm 3 from Host 0/DC 1  
+        //       to Host 1/DC 1 is started. It's expected to finish in 14.03    
+        //       seconds, considering the 50% of bandwidth allowed for  
+        //       migration and the VM RAM size. 
+        // INFO  314.13: VmAllocationPolicyMigrationSecurityAware: Vm 3 has 
+        //       been allocated to Host 1/DC 1  
+        // INFO  314.13: Migration of Vm 3 to Host 1/DC 1 is completed
+        
+        // if (vmsToPlace.isEmpty()) {
+        //     return new HashMap<>();
+        // }
+
+        // Vm vmToPlace = vmsToPlace.removeFirst();
+        // saveAllocation();
+        // final Map<Vm, Host> migrationMap = attemptMigration(vmToPlace);
+        // migrationMap.put(vmToPlace, null);
+        // restoreAllocation();
+        // return migrationMap;
     }
 
     private int computeVmMigrationScore(

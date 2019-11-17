@@ -872,8 +872,6 @@ public abstract class DatacenterBrokerAbstract extends CloudSimEntity implements
      *         0 to indicate the request was not sent due to lack of available datacenter
      */
     private int requestVmCreation(final Datacenter datacenter, final boolean isFallbackDatacenter, final Vm vm) {
-        // vm.setLastTriedDatacenter(Datacenter.NULL);
-        // vm.setSubmissionDelay(20);
         if (datacenter == Datacenter.NULL || datacenter.equals(vm.getLastTriedDatacenter())) {
             return 0;
         }

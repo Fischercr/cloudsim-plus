@@ -7,7 +7,7 @@ import org.cloudbus.cloudsim.cloudlets.Cloudlet;
 import org.cloudbus.cloudsim.cloudlets.CloudletSimple;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.datacenters.Datacenter;
-import org.cloudbus.cloudsim.datacenters.DatacenterSecurityAware;
+import org.cloudbus.cloudsim.datacenters.DatacenterSimple;
 import org.cloudbus.cloudsim.hosts.Host;
 import org.cloudbus.cloudsim.hosts.HostSecurityAware;
 import org.cloudbus.cloudsim.hosts.HostStateHistoryEntry;
@@ -37,14 +37,14 @@ import java.util.*;
  * @author Caitlin Fischer
  */
 public class SecurityAwareScheduler {
-    private static final int VMS = 8;
+    private static final int VMS = 800;
     private static final int VM_BANDWIDTH = 100;  // In Mbits / s.
     private static final int VM_MIPS = 1000;
     private static final int VM_PES = 1;
     private static final int VM_RAM = 1024;  // In MB.
     private static final int VM_STORAGE = 2500;  // In MB.
 
-    private static final int HOSTS = 3;
+    private static final int HOSTS = 300;
     private static final int HOST_BANDWIDTH = (VMS + 1) * VM_BANDWIDTH;
     private static final int HOST_MIPS = 2660;
     private static final int HOST_PES = 4;
@@ -126,7 +126,7 @@ public class SecurityAwareScheduler {
                 new VmSelectionPolicySecurityAwareScheduler(),
                 HOST_OVER_UTILIZATION_THRESHOLD);
 
-        DatacenterSecurityAware dc = new DatacenterSecurityAware(
+        DatacenterSimple dc = new DatacenterSimple(
             simulation, hostList, allocationPolicy);
         dc.setSchedulingInterval(SCHEDULING_INTERVAL);
         return dc;
@@ -188,8 +188,8 @@ public class SecurityAwareScheduler {
                     .setUtilizationModelCpu(utilizationCpu)
                     .setUtilizationModelBw(new UtilizationModelDynamic(0.6))
                     .setUtilizationModelRam(new UtilizationModelDynamic(0.6));
-                if (i >= VMS - 1) {
-                    cloudlet.setSubmissionDelay(1000);
+                if (i >= VMS - 30) {
+                    cloudlet.setSubmissionDelay(9000);
                 }
             list.add(cloudlet);
         }

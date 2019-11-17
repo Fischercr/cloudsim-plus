@@ -615,8 +615,6 @@ public class DatacenterSimple extends CloudSimEntity implements Datacenter {
 
         final Vm vm = entry.getKey();
         final Host targetHost = entry.getValue();
-        // Added for SecurityAware.
-        final Host oldHost = vm.getHost();
 
         //Updates processing of all Hosts to get the latest state for all Hosts before migrating VMs
         updateHostsProcessing();
@@ -641,7 +639,6 @@ public class DatacenterSimple extends CloudSimEntity implements Datacenter {
 
         if (result) {
             LOGGER.info("{}: Migration of {} to {} is completed", getSimulation().clockStr(), vm, targetHost);
-            oldHost.removeVmMigratingOut(vm);
         } else {
             LOGGER.error("{}: {}: Allocation of {} to the destination Host failed!", getSimulation().clockStr(), this, vm);
         }
@@ -764,7 +761,7 @@ public class DatacenterSimple extends CloudSimEntity implements Datacenter {
      *
      * <p><b>This is an expensive operation for large scale simulations.</b></p>
      */
-    protected void checkIfVmMigrationsAreNeeded() {
+    private void checkIfVmMigrationsAreNeeded() {
         System.out.println("CHECK IF VM MIGRATIONS ARE NEEDED");
         if (!isMigrationsEnabled()) {
             return;
@@ -888,7 +885,7 @@ public class DatacenterSimple extends CloudSimEntity implements Datacenter {
      * @param <T> the class of VMs inside the list
      * @return the list all VMs from all Hosts
      */
-    protected <T extends Vm> List<T> getVmList() {
+    private <T extends Vm> List<T> getVmList() {
         return (List<T>) Collections.unmodifiableList(
                 getHostList().stream()
                     .flatMap(h -> h.getVmList().stream())
